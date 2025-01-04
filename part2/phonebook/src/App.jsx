@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import "./App.css"
-
+import dataBaseServices from "./services/backend.jsx"
 
 function SearchBar({handleSearchChange}) {
 
@@ -36,6 +36,7 @@ function InputPanel({handleSubmit, handleNameChange, handleNumberChange, newName
 function RemoveButton({persons, person, setPersons}) {
   function onClickRemove() {
     setPersons(persons.filter((iterPerson) => iterPerson.id !==  person.id));
+    dataBaseServices.axiosDelete(person.id);
   }
   return <button onClick={onClickRemove}>Remove</button>
 }
@@ -47,7 +48,9 @@ function PersonPanel({persons, person, setPersons}) {
 
   )
 }
+
 function OutputPanel({persons, filterName, setPersons}) {
+  console.log(persons);
   return (
     <>
       <h2>Numbers</h2>
@@ -65,16 +68,17 @@ function OutputPanel({persons, filterName, setPersons}) {
 }
 
 const App = () => {
-  const currentID = useRef(1);
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas',
-      id: 0
-     }
-  ]) 
-  const [newName, setNewName] = useState('')
+  const [persons, setPersons] = useState([]);
+  const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [filterName, setFilterName] = useState('');
 
+  useEffect(() => {
+    dataBaseServices.axiosGetAll().then((result) => {
+      setPersons(result);
+    });
+  }, []);
+  
   function handleNameChange(e) {
     e.preventDefault();
     setNewName(e.target.value);
@@ -90,23 +94,38 @@ const App = () => {
   }
 
   function handleSubmit(e) {
+
     e.preventDefault();
+
+    function stringHash(inputString) {
+      let hash = 5381;
+      for (let char of inputString) {
+        hash = ((hash << 5) + hash) + char.codePointAt(0);
+      }
+      return hash;
+    }
+
     for (let person of persons) {
       if (person["name"] === newName) {
         setNewNumber("");
         setNewName("");
-        alert(`${newName} is already added to phonebook`);
+        const result = confirm("Perform update?")
+        if (result === true) {
+          dataBaseServices.axiosUpdate({name: newName, number: newNumber, id: person.id});
+        }
+        
         return;
       }
     }
 
-    const newPerson = {name: newName, number: newNumber, id: currentID.current++};
-    setPersons([...persons, newPerson]);
-    setNewNumber("");
-    setNewName("");
+    const newPerson = {name: newName, number: newNumber, id: stringHash(newName).toString()};
+    dataBaseServices.axiosCreate(newPerson).then(response => {
+      setPersons([...persons, newPerson]);
+      setNewNumber("");
+      setNewName("");
+    });
   }
-
-
+    
   return (
     <div className="main">
     <h1>Phonebook</h1>
@@ -116,8 +135,8 @@ const App = () => {
       <OutputPanel setPersons={setPersons} persons={persons} filterName={filterName}></OutputPanel>
       </div>   
     </div>
-      
   )
-}
+
+  }
 
 export default App
