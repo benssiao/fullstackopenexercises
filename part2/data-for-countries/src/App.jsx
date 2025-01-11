@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import dataBaseServices from "./services/backend.jsx"
 
@@ -46,44 +44,50 @@ function OutputPanel({searchBarText, retrievedCountryNames, retrievedCountryObje
 
 function CountryItem({countryName, countryObject}) {
   const [showDetail, setShowDetail] = useState(false);
-  const [shownDetail, setShownDetail] = useState(false);
   function handleClick(e) {
     e.preventDefault();
     setShowDetail(showDetail ? false : true);
-    if (!shownDetail) {
-      setShownDetail(true);
+  }
+
+  function capitalizeFirsts(str) {
+    // takes a string of the form "burkina faso" and returns "Burkina Faso"
+    function capitalizeFirst(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
     }
+    return str.split(" ").map(substr => capitalizeFirst(substr)).join(" ");
   }
   if (showDetail) {
-    return <div><CountryItemExpanded className="expandedCountryCard" shownDetail={shownDetail} countryObject={countryObject}> </CountryItemExpanded> <button onClick={handleClick}>{showDetail?  "hide" : "show more"}</button> </div>;
+    return <div><CountryItemExpanded className="expandedCountry"  countryObject={countryObject}> </CountryItemExpanded> <button onClick={handleClick}>{showDetail?  "hide" : "show more"}</button> </div>;
   }
-  return <div className="countryCard">{countryName} <button onClick={handleClick}>{showDetail?  "hide" : "show more"}</button></div>;
+  return <div className="countryCard">{capitalizeFirsts(countryName)} <button onClick={handleClick}>{showDetail?  "hide" : "show more"}</button></div>;
 }
 
-function CountryItemExpanded({shownDetail, countryObject}) {
-  console.log(1);
+function CountryItemExpanded({countryObject}) {
   return (
-  <div> 
-    <div>{countryObject.name.common}</div>
-
-    <div>capital: {countryObject.capital[0]}</div>
-    <div>population: {countryObject.population}</div>
-    <div>area: {countryObject.area} </div>
-    <div> Languages 
-      <ul>
-        {Object.entries(countryObject.languages).map(([_, language]) => {
-          return <li key={language}> {language}</li>
-          
-        })}
-      </ul>
-    </div>
-    <img src={countryObject.flags["png"]} alt={countryObject.flags["alt"]}/>
-    <WeatherInformation shownDetail={shownDetail} countryObject={countryObject} ></WeatherInformation>
-    </div>
+    <>
+    
+      <div className="countryName">{countryObject.name.common}</div>
+      <div className="expandedCountryCardWrap">
+          <div className="expandedCountryCard"> 
+          <img src={countryObject.flags["png"]} alt={countryObject.flags["alt"]}/>
+          <ul className="countryInfo">
+            <li>Capital: {countryObject.capital[0]}</li>
+            <li>Population: {countryObject.population}</li>
+            <li>Area: {countryObject.area}</li>
+            <li>Languages: {Object.entries(countryObject.languages).map(([_, language]) => {
+              return <span key={language}> {language}</span>})} </li>
+          </ul>
+          <WeatherInformation countryObject={countryObject} ></WeatherInformation>
+        </div>
+      </div>
+      
+      
+      
+    </>
     )
 }
 
-function WeatherInformation({shownDetail, countryObject}) {
+function WeatherInformation({countryObject}) {
   const [weatherInfo, setWeatherInfo] = useState(null);
   useEffect(() => {
     dataBaseServices.axiosGetWeatherDataAt(countryObject.latlng[0], countryObject.latlng[1])
@@ -91,14 +95,18 @@ function WeatherInformation({shownDetail, countryObject}) {
     .catch(error => {
     console.log(error);
     });
-  }, [shownDetail]);
+  }, [countryObject.latlng]);
   if (!weatherInfo) {
     return null;
   }
 
   return (
-    <div>
-      temperature: {weatherInfo["temp"]} <img src={`https://openweathermap.org/img/wn/${weatherInfo.icon}@2x.png`}></img> wind speed: {weatherInfo["speed"]} 
+    <div styles={{backgroundColor: "gray"}} className="weatherAppendage" >
+      <img src={`https://openweathermap.org/img/wn/${weatherInfo.icon}@2x.png`}></img>
+        <ul className="weatherInfo">
+          <li>Temperature: {Math.round(weatherInfo["temp"]- 273.15)} °C</li>
+          <li> Wind speed: {weatherInfo["speed"]} m/s </li> 
+        </ul>
     </div>
   )
 
@@ -162,7 +170,7 @@ function App() {
       <form>
         <div>find countries <input type="text" onChange={handleSearch}/> </div>
       </form>
-      <OutputPanel searchBarText={searchBarText} retrievedCountryNames={retrievedCountryNames} retrievedCountryObjects={retrievedCountryObjects} ></OutputPanel>
+      <OutputPanel className="outputPanel" searchBarText={searchBarText} retrievedCountryNames={retrievedCountryNames} retrievedCountryObjects={retrievedCountryObjects} ></OutputPanel>
     </>
   )
 }
