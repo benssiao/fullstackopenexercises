@@ -4,24 +4,22 @@
   padding: 2rem;
   text-align: center;
 }
-html, body {
-  height: 100%;
-  margin:0;
-}
+
+
+
 .expandedCountryCardWrap {
   display: flex;
   flex-direction: column;
-
+  position: relative;
 }
+
 .expandedCountryCard {
-  
-  width: 320px;
+  width: max-content;
   border-radius: 8px;
   overflow: hidden;
   background-color: white;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-
-
+  margin: auto;
 }
 
 .expandedCountryCard img {
@@ -32,17 +30,13 @@ html, body {
 .countryName {
   font-size: 24px;
   font-weight: bold;
-
-
 }
 
 .weatherAppendage {
   display: flex;
-  
-  width: 320px;
+  width: 100%;
   border-radius: 8px;
   overflow: hidden;
-  background-color: rgb(119, 159, 245);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -50,15 +44,48 @@ html, body {
   width: 25% ;   
   height: 25% ;  
   object-fit: contain;
-  
- 
 }
 
 .weatherInfo {
   display: flex;
   flex-direction: column;
   justify-content: space=between;
+  margin: 1rem;
 }
-.countryCard {
 
+
+.outputPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  flex-grow: 1;
+}
+
+.searchBar {
+  margin-bottom: 2rem;
+}
+
+.title {
+  margin-bottom: 1rem;
+}
+
+.outerWrap {
+  flex: 1;
+  overflow:auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; 
+}
+
+.dividingLine {
+  margin-top: 50px;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 10;
+  padding: 1rem 0;
 }

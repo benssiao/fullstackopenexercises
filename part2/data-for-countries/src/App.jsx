@@ -31,14 +31,14 @@ function OutputPanel({searchBarText, retrievedCountryNames, retrievedCountryObje
   if (includesList.length === 1) {
     
     
-    return <CountryItemExpanded className="expandedCountryCard" countryObject={retrievedCountryObjects.get(includesList[0])}></CountryItemExpanded>
+    return <CountryItemExpanded className="expandedCountryCard outputPanel" countryObject={retrievedCountryObjects.get(includesList[0])}></CountryItemExpanded>
   }
   return (
-    <>
+    <div className="outputPanel">
       {includesList.map((countryName) => {
         return <CountryItem key={countryName} countryName={countryName} countryObject={retrievedCountryObjects.get(countryName)}></CountryItem>
       })}
-    </>
+    </div>
   )
 }
 
@@ -80,14 +80,12 @@ function CountryItemExpanded({countryObject}) {
           <WeatherInformation countryObject={countryObject} ></WeatherInformation>
         </div>
       </div>
-      
-      
-      
     </>
     )
 }
 
 function WeatherInformation({countryObject}) {
+
   const [weatherInfo, setWeatherInfo] = useState(null);
   useEffect(() => {
     dataBaseServices.axiosGetWeatherDataAt(countryObject.latlng[0], countryObject.latlng[1])
@@ -95,34 +93,38 @@ function WeatherInformation({countryObject}) {
     .catch(error => {
     console.log(error);
     });
-  }, [countryObject.latlng]);
+  }, []);
+
+  function getTemperatureColor(temperature) {
+    // Define temperature ranges and corresponding colors
+    if (temperature <= 0) return '#1E90FF';  // Cold blue
+    if (temperature <= 10) return '#87CEEB';  // Light blue
+    if (temperature <= 20) return '#90EE90';  // Light green
+    if (temperature <= 25) return '#FFD700';  // Yellow
+    if (temperature <= 30) return '#FFA500';  // Orange
+    return '#FF4500';  // Hot red
+  };
+
   if (!weatherInfo) {
     return null;
   }
 
   return (
-    <div styles={{backgroundColor: "gray"}} className="weatherAppendage" >
+    <div style={{backgroundColor: getTemperatureColor(Math.round(weatherInfo["temp"]- 273.15))}} className="weatherAppendage" >
       <img src={`https://openweathermap.org/img/wn/${weatherInfo.icon}@2x.png`}></img>
         <ul className="weatherInfo">
-          <li>Temperature: {Math.round(weatherInfo["temp"]- 273.15)} °C</li>
-          <li> Wind speed: {weatherInfo["speed"]} m/s </li> 
+          <li>Current Temperature: {Math.round(weatherInfo["temp"]- 273.15)} °C</li>
+          <li> Current Wind speed: {weatherInfo["speed"]} m/s </li> 
         </ul>
     </div>
   )
-
-
-
 }
-
 
 function App() {
 
   const [searchBarText, setSearchBarText] = useState(null);
   const [retrievedCountryNames, setRetrievedCountryNames] = useState(null);
   const [retrievedCountryObjects, setRetrievedCountryObjects] = useState(null);
-  /* const [detailedCountryData, setDetailedCountryData] = useState(null);
-  const [countryToBeExpanded, setCountryToBeExpanded] = useState(null); */
-  
   function handleSearch(e) {
     e.preventDefault();
     setSearchBarText(e.target.value);
@@ -143,35 +145,20 @@ function App() {
     });
   }, [])
 
- /*  
-  useEffect(() => {
-    if (retrievedCountryNames !== null) {
-      for (countryName in retrievedCountryNames) {
-        dataBaseServices.axiosGetTarget(countryName).then(result => {
-          setDetailedCountryData();
-        })
-      }
-    }
-
-  }, [retrievedCountryNames])
-
-  useEffect(() => {
-
-  }, [countryToBeExpanded])
- */
-
-
   if (!retrievedCountryNames || !retrievedCountryObjects) {
     return null
   }
-
   return (
-    <>
-      <form>
-        <div>find countries <input type="text" onChange={handleSearch}/> </div>
-      </form>
+    <div className="outerWrap">
+      <div className="header">
+        <h1 className="title">Country information app.</h1>
+          <form className="searchBar">
+            <input placeholder="Search for countries..." type="text" onChange={handleSearch}/>
+            <hr className="dividingLine"></hr>
+          </form>
+      </div>
       <OutputPanel className="outputPanel" searchBarText={searchBarText} retrievedCountryNames={retrievedCountryNames} retrievedCountryObjects={retrievedCountryObjects} ></OutputPanel>
-    </>
+    </div>
   )
 }
 
